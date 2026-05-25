@@ -1,5 +1,13 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Download, FolderOpen, IndentDecrease, IndentIncrease } from 'lucide-react'
+import {
+  Download,
+  FolderOpen,
+  IndentDecrease,
+  IndentIncrease,
+  Moon,
+  MoveVertical,
+  Sun,
+} from 'lucide-react'
 
 import {
   INDENT_SIZE,
@@ -8,6 +16,7 @@ import {
   createLine,
   insertLineBelow,
   isComment,
+  moveLine,
   normalizeLines,
   parseTextToLines,
   serializeLinesToText,
@@ -16,7 +25,7 @@ import {
 } from '@/lib/editor'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
@@ -31,6 +40,13 @@ export function AlgorithmEditor() {
   const [lines, setLines] = useState<EditorLine[]>(INITIAL_LINES)
   const [activeIndex, setActiveIndex] = useState(0)
   const [pendingFocus, setPendingFocus] = useState<PendingFocus | null>(null)
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      return savedTheme
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  })
 
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map())
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -56,6 +72,11 @@ export function AlgorithmEditor() {
     setPendingFocus(null)
   }, [pendingFocus, lines])
 
+  useLayoutEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
   function focusLine(index: number, moveToEnd = true) {
     const target = lines[index]
     if (!target) {
@@ -75,11 +96,33 @@ export function AlgorithmEditor() {
     focusLine(activeIndex)
   }
 
+  function moveCurrentLine(direction: -1 | 1) {
+    const result = moveLine(lines, activeIndex, direction)
+    if (result.nextIndex === activeIndex) {
+      return
+    }
+
+    updateLines(result.lines)
+    focusLine(result.nextIndex)
+  }
+
   function handleTextChange(index: number, text: string) {
     updateLines(updateLineText(lines, index, text))
   }
 
   function handleKeyDown(index: number, event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.shiftKey && event.key === 'ArrowUp') {
+      event.preventDefault()
+      moveCurrentLine(-1)
+      return
+    }
+
+    if (event.shiftKey && event.key === 'ArrowDown') {
+      event.preventDefault()
+      moveCurrentLine(1)
+      return
+    }
+
     if (event.shiftKey && event.key === 'ArrowRight') {
       event.preventDefault()
       indentCurrentLine(1)
@@ -156,31 +199,52 @@ export function AlgorithmEditor() {
     URL.revokeObjectURL(link.href)
   }
 
-  return (
-    <Card className="flex h-full min-h-0 flex-col overflow-hidden border-slate-200 shadow-xl">
-      <CardHeader className="space-y-3 border-b bg-white">
-        <CardTitle>Editor de Algoritmos Hierarquicos</CardTitle>
-        <CardDescription>
-          Estrutura hierarquica com numeracao automatica, atalhos de teclado e importacao/exportacao de
-          arquivos .txt com recuo em passos fixos de 4 espacos por nivel.
-        </CardDescription>
+  function toggleTheme() {
+    setTheme((currentTheme) => (currentTheme === 'light' ? 'dark' : 'light'))
+  }
 
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={openFilePicker} variant="secondary" size="sm" type="button">
+  return (
+    <Card className="flex h-full min-h-0 overflow-hidden border-slate-300 shadow-xl dark:border-slate-700">
+      <aside className="flex h-full w-72 shrink-0 flex-col border-r border-slate-300 bg-slate-100 p-4 dark:border-slate-700 dark:bg-slate-900">
+        <div className="space-y-2">
+          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">Editor de Algoritmos</h2>
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            Recuo em blocos de 4 espacos e numeracao logica atualizada automaticamente.
+          </p>
+        </div>
+
+        <div className="mt-4 grid gap-2">
+          <Button onClick={openFilePicker} variant="secondary" size="sm" type="button" className="justify-start">
             <FolderOpen className="mr-2 h-4 w-4" />
             Abrir Arquivo
           </Button>
-          <Button onClick={saveFile} size="sm" type="button">
+          <Button onClick={saveFile} size="sm" type="button" className="justify-start">
             <Download className="mr-2 h-4 w-4" />
             Salvar Arquivo
           </Button>
-          <Button onClick={() => indentCurrentLine(-1)} variant="outline" size="sm" type="button">
+          <Button
+            onClick={() => indentCurrentLine(-1)}
+            variant="outline"
+            size="sm"
+            type="button"
+            className="justify-start"
+          >
             <IndentDecrease className="mr-2 h-4 w-4" />
             Diminuir Recuo
           </Button>
-          <Button onClick={() => indentCurrentLine(1)} variant="outline" size="sm" type="button">
+          <Button
+            onClick={() => indentCurrentLine(1)}
+            variant="outline"
+            size="sm"
+            type="button"
+            className="justify-start"
+          >
             <IndentIncrease className="mr-2 h-4 w-4" />
             Aumentar Recuo
+          </Button>
+          <Button onClick={toggleTheme} variant="outline" size="sm" type="button" className="justify-start">
+            {theme === 'light' ? <Moon className="mr-2 h-4 w-4" /> : <Sun className="mr-2 h-4 w-4" />}
+            {theme === 'light' ? 'Ativar Dark Mode' : 'Ativar Light Mode'}
           </Button>
           <input
             ref={fileInputRef}
@@ -190,11 +254,22 @@ export function AlgorithmEditor() {
             onChange={handleFileSelection}
           />
         </div>
-      </CardHeader>
 
-      <CardContent className="min-h-0 flex-1 p-0">
-        <ScrollArea className="h-full bg-slate-50">
-          <div>
+        <div className="mt-6 rounded-md border border-slate-300 bg-white p-3 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+          <p className="mb-2 flex items-center font-semibold text-slate-800 dark:text-slate-100">
+            <MoveVertical className="mr-1 h-3.5 w-3.5" />
+            Atalhos
+          </p>
+          <p>Shift + →: aumentar recuo</p>
+          <p>Shift + ←: diminuir recuo</p>
+          <p>Shift + ↑: mover linha para cima</p>
+          <p>Shift + ↓: mover linha para baixo</p>
+        </div>
+      </aside>
+
+      <section className="min-h-0 min-w-0 flex-1">
+        <ScrollArea className="h-full bg-slate-50 dark:bg-slate-950">
+          <div className="font-mono">
             {lines.map((line, index) => {
               const comment = isComment(line.text)
               const logical = logicalLabels[index]
@@ -204,11 +279,13 @@ export function AlgorithmEditor() {
                   key={line.id}
                   role="listitem"
                   className={cn(
-                    'grid min-h-10 grid-cols-[58px_minmax(0,1fr)] items-center border-b border-slate-200 text-sm',
-                    index === activeIndex ? 'bg-blue-50' : 'bg-white hover:bg-slate-50',
+                    'grid min-h-10 grid-cols-[58px_minmax(0,1fr)] items-center border-b border-slate-200 text-sm dark:border-slate-800',
+                    index === activeIndex
+                      ? 'bg-blue-50 dark:bg-slate-800/80'
+                      : 'bg-white hover:bg-slate-50 dark:bg-slate-950 dark:hover:bg-slate-900',
                   )}
                 >
-                  <span className="border-r border-slate-200 px-2 text-right font-mono text-slate-500">
+                  <span className="border-r border-slate-200 px-2 text-right font-mono text-slate-500 dark:border-slate-800 dark:text-slate-400">
                     {index + 1}
                   </span>
 
@@ -218,7 +295,7 @@ export function AlgorithmEditor() {
                   >
                     <span
                       className={cn(
-                        'mr-1 font-mono text-[0.95rem] text-slate-700',
+                        'mr-1 font-mono text-[0.95rem] text-slate-700 dark:text-slate-300',
                         comment && 'opacity-0',
                       )}
                     >
@@ -237,9 +314,9 @@ export function AlgorithmEditor() {
                       onChange={(event) => handleTextChange(index, event.target.value)}
                       onKeyDown={(event) => handleKeyDown(index, event)}
                       className={cn(
-                        'h-10 border-0 bg-transparent px-0 font-mono text-[0.95rem] shadow-none ring-0 focus-visible:ring-0',
+                        'h-10 border-0 bg-transparent px-0 font-mono text-[0.95rem] text-slate-900 shadow-none ring-0 focus-visible:ring-0 dark:text-slate-100',
                         line.level === 0 && !comment && 'font-semibold uppercase',
-                        comment && 'italic text-slate-500',
+                        comment && 'italic text-slate-500 dark:text-slate-400',
                       )}
                     />
                   </div>
@@ -248,7 +325,7 @@ export function AlgorithmEditor() {
             })}
           </div>
         </ScrollArea>
-      </CardContent>
+      </section>
     </Card>
   )
 }

@@ -97,6 +97,24 @@ export function insertLineBelow(lines: EditorLine[], index: number, level: numbe
   return next
 }
 
+export function moveLine(lines: EditorLine[], index: number, direction: -1 | 1): {
+  lines: EditorLine[]
+  nextIndex: number
+} {
+  const targetIndex = index + direction
+  if (targetIndex < 0 || targetIndex >= lines.length) {
+    return { lines, nextIndex: index }
+  }
+
+  const nextLines = [...lines]
+  ;[nextLines[index], nextLines[targetIndex]] = [nextLines[targetIndex], nextLines[index]]
+
+  return {
+    lines: nextLines,
+    nextIndex: targetIndex,
+  }
+}
+
 export function parseTextToLines(content: string): EditorLine[] {
   const parsed = content
     .replace(/\r/g, '')
