@@ -2,7 +2,7 @@ import { AlgorithmEditor } from './components/editor/algorithm-editor'
 
 function App() {
   return (
-    <main className="h-screen overflow-hidden bg-slate-100 px-3 py-3 sm:px-6 sm:py-4 lg:px-8">
+    <main className="h-screen overflow-hidden bg-stone-300/40 px-3 py-3 sm:px-6 sm:py-4 lg:px-8 dark:bg-slate-950">
       <div className="mx-auto h-full w-full max-w-6xl">
         <AlgorithmEditor />
       </div>

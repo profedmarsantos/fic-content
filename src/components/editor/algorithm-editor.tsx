@@ -31,7 +31,8 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface PendingFocus {
   id: string
-  moveToEnd: boolean
+  selectionStart?: number
+  selectionEnd?: number
 }
 
 const INITIAL_LINES: EditorLine[] = normalizeLines([createLine(1, '')])
@@ -64,9 +65,14 @@ export function AlgorithmEditor() {
     }
 
     element.focus()
-    if (pendingFocus.moveToEnd) {
-      const end = element.value.length
-      element.setSelectionRange(end, end)
+    if (
+      typeof pendingFocus.selectionStart === 'number' &&
+      typeof pendingFocus.selectionEnd === 'number'
+    ) {
+      const max = element.value.length
+      const start = Math.min(pendingFocus.selectionStart, max)
+      const end = Math.min(pendingFocus.selectionEnd, max)
+      element.setSelectionRange(start, end)
     }
 
     setPendingFocus(null)
@@ -77,14 +83,18 @@ export function AlgorithmEditor() {
     localStorage.setItem('theme', theme)
   }, [theme])
 
-  function focusLine(index: number, moveToEnd = true) {
+  function focusLine(index: number, selectionStart?: number, selectionEnd?: number) {
     const target = lines[index]
     if (!target) {
       return
     }
 
     setActiveIndex(index)
-    setPendingFocus({ id: target.id, moveToEnd })
+    setPendingFocus({
+      id: target.id,
+      selectionStart,
+      selectionEnd: typeof selectionEnd === 'number' ? selectionEnd : selectionStart,
+    })
   }
 
   function updateLines(nextLines: EditorLine[]) {
@@ -93,17 +103,29 @@ export function AlgorithmEditor() {
 
   function indentCurrentLine(delta: 1 | -1) {
     updateLines(changeLineLevel(lines, activeIndex, delta))
-    focusLine(activeIndex)
+    const activeInput = inputRefs.current.get(lines[activeIndex]?.id ?? '')
+    const selectionStart = activeInput?.selectionStart ?? activeInput?.value.length ?? 0
+    const selectionEnd = activeInput?.selectionEnd ?? selectionStart
+    focusLine(activeIndex, selectionStart, selectionEnd)
   }
 
-  function moveCurrentLine(direction: -1 | 1) {
+  function moveCurrentLine(direction: -1 | 1, selectionStart: number, selectionEnd: number) {
     const result = moveLine(lines, activeIndex, direction)
     if (result.nextIndex === activeIndex) {
       return
     }
 
     updateLines(result.lines)
-    focusLine(result.nextIndex)
+    focusLine(result.nextIndex, selectionStart, selectionEnd)
+  }
+
+  function navigateLine(direction: -1 | 1, selectionStart: number, selectionEnd: number) {
+    const nextIndex = activeIndex + direction
+    if (nextIndex < 0 || nextIndex >= lines.length) {
+      return
+    }
+
+    focusLine(nextIndex, selectionStart, selectionEnd)
   }
 
   function handleTextChange(index: number, text: string) {
@@ -111,15 +133,30 @@ export function AlgorithmEditor() {
   }
 
   function handleKeyDown(index: number, event: React.KeyboardEvent<HTMLInputElement>) {
+    const selectionStart = event.currentTarget.selectionStart ?? event.currentTarget.value.length
+    const selectionEnd = event.currentTarget.selectionEnd ?? selectionStart
+
     if (event.shiftKey && event.key === 'ArrowUp') {
       event.preventDefault()
-      moveCurrentLine(-1)
+      moveCurrentLine(-1, selectionStart, selectionEnd)
       return
     }
 
     if (event.shiftKey && event.key === 'ArrowDown') {
       event.preventDefault()
-      moveCurrentLine(1)
+      moveCurrentLine(1, selectionStart, selectionEnd)
+      return
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      navigateLine(-1, selectionStart, selectionEnd)
+      return
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      navigateLine(1, selectionStart, selectionEnd)
       return
     }
 
@@ -179,7 +216,7 @@ export function AlgorithmEditor() {
       setLines(parsedLines)
       setActiveIndex(0)
       if (parsedLines[0]) {
-        setPendingFocus({ id: parsedLines[0].id, moveToEnd: false })
+        setPendingFocus({ id: parsedLines[0].id, selectionStart: 0, selectionEnd: 0 })
       }
       event.target.value = ''
     }
@@ -204,21 +241,40 @@ export function AlgorithmEditor() {
   }
 
   return (
-    <Card className="flex h-full min-h-0 overflow-hidden border-slate-300 shadow-xl dark:border-slate-700">
-      <aside className="flex h-full w-72 shrink-0 flex-col border-r border-slate-300 bg-slate-100 p-4 dark:border-slate-700 dark:bg-slate-900">
-        <div className="space-y-2">
-          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">Editor de Algoritmos</h2>
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            Recuo em blocos de 4 espacos e numeracao logica atualizada automaticamente.
+    <div className="relative h-full">
+      <aside className="hidden h-[calc(100vh-2rem)] w-72 flex-col rounded-xl border border-[#d6ccba] bg-[#fff9ef] p-4 shadow-lg md:fixed md:left-4 md:top-4 md:flex dark:border-[#3a3d41] dark:bg-[#252526]">
+        <div className="space-y-3">
+          <h2 className="sidebar-title text-center text-slate-900 dark:text-slate-100">
+            Editor de Algoritmo em Pseudocódigos
+          </h2>
+          <p className="sidebar-helper-text text-center text-slate-600 dark:text-[#d4d4d4]">
+            Aqui você cria seus algoritmos em pseudocódigos numerados ou estruturados!
           </p>
         </div>
 
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label="Alternar entre modo claro e escuro"
+          aria-pressed={theme === 'dark'}
+          className="mt-4 flex h-8 w-16 items-center rounded-full border border-slate-300 bg-slate-200 px-1 transition-colors dark:border-[#3a3d41] dark:bg-[#3c3c3c]"
+        >
+          <span
+            className={cn(
+              'flex h-6 w-6 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm transition-transform dark:bg-[#0e639c] dark:text-white',
+              theme === 'dark' ? 'translate-x-8' : 'translate-x-0',
+            )}
+          >
+            {theme === 'light' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+          </span>
+        </button>
+
         <div className="mt-4 grid gap-2">
-          <Button onClick={openFilePicker} variant="secondary" size="sm" type="button" className="justify-start">
+          <Button onClick={openFilePicker} size="sm" type="button" className="justify-start">
             <FolderOpen className="mr-2 h-4 w-4" />
             Abrir Arquivo
           </Button>
-          <Button onClick={saveFile} size="sm" type="button" className="justify-start">
+          <Button onClick={saveFile} variant="secondary" size="sm" type="button" className="justify-start">
             <Download className="mr-2 h-4 w-4" />
             Salvar Arquivo
           </Button>
@@ -242,10 +298,6 @@ export function AlgorithmEditor() {
             <IndentIncrease className="mr-2 h-4 w-4" />
             Aumentar Recuo
           </Button>
-          <Button onClick={toggleTheme} variant="outline" size="sm" type="button" className="justify-start">
-            {theme === 'light' ? <Moon className="mr-2 h-4 w-4" /> : <Sun className="mr-2 h-4 w-4" />}
-            {theme === 'light' ? 'Ativar Dark Mode' : 'Ativar Light Mode'}
-          </Button>
           <input
             ref={fileInputRef}
             type="file"
@@ -255,8 +307,8 @@ export function AlgorithmEditor() {
           />
         </div>
 
-        <div className="mt-6 rounded-md border border-slate-300 bg-white p-3 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-          <p className="mb-2 flex items-center font-semibold text-slate-800 dark:text-slate-100">
+        <div className="mt-6 rounded-md border border-[#d6ccba] bg-[#fffdf8] p-3 text-xs text-slate-600 dark:border-[#3a3d41] dark:bg-[#2d2d30] dark:text-[#c8c8c8]">
+          <p className="mb-2 flex items-center font-semibold text-slate-800 dark:text-[#e6e6e6]">
             <MoveVertical className="mr-1 h-3.5 w-3.5" />
             Atalhos
           </p>
@@ -267,9 +319,15 @@ export function AlgorithmEditor() {
         </div>
       </aside>
 
-      <section className="min-h-0 min-w-0 flex-1">
-        <ScrollArea className="h-full bg-slate-50 dark:bg-slate-950">
-          <div className="font-mono">
+      <section className="mx-auto flex h-full min-h-0 min-w-0 max-w-6xl items-center justify-center md:pl-72">
+        <Card className="flex h-full min-h-0 w-full max-w-5xl flex-col overflow-hidden border-[#d9cebc] bg-[#f7ecd2] shadow-2xl dark:border-[#3a3d41] dark:bg-[#1e1e1e]">
+          <div className="border-b border-[#d9cebc] bg-[#fbf3df] px-5 py-3 dark:border-[#3a3d41] dark:bg-[#252526]">
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Editor de Algoritmo em Pseudocódigos</h1>
+          </div>
+
+          <section className="min-h-0 flex-1">
+            <ScrollArea className="h-full bg-[#fff7e4] dark:bg-[#1e1e1e]">
+              <div className="font-mono">
             {lines.map((line, index) => {
               const comment = isComment(line.text)
               const logical = logicalLabels[index]
@@ -279,13 +337,13 @@ export function AlgorithmEditor() {
                   key={line.id}
                   role="listitem"
                   className={cn(
-                    'grid min-h-10 grid-cols-[58px_minmax(0,1fr)] items-center border-b border-slate-200 text-sm dark:border-slate-800',
+                    'grid min-h-10 grid-cols-[58px_minmax(0,1fr)] items-center border-b border-[#dfd4bf] text-sm dark:border-[#33373b]',
                     index === activeIndex
-                      ? 'bg-blue-50 dark:bg-slate-800/80'
-                      : 'bg-white hover:bg-slate-50 dark:bg-slate-950 dark:hover:bg-slate-900',
+                      ? 'bg-[#f4e6bc] dark:bg-[#2a2d2e]'
+                      : 'bg-[#fffaf0] hover:bg-[#f8edd0] dark:bg-[#1e1e1e] dark:hover:bg-[#252526]',
                   )}
                 >
-                  <span className="border-r border-slate-200 px-2 text-right font-mono text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                  <span className="border-r border-[#dfd4bf] px-2 text-right font-mono font-bold text-[#3d6abf] dark:border-[#33373b] dark:text-[#3d6abf]">
                     {index + 1}
                   </span>
 
@@ -295,7 +353,7 @@ export function AlgorithmEditor() {
                   >
                     <span
                       className={cn(
-                        'mr-1 font-mono text-[0.95rem] text-slate-700 dark:text-slate-300',
+                        'mr-1 font-mono text-[0.95rem] text-slate-700 dark:text-[#d4d4d4]',
                         comment && 'opacity-0',
                       )}
                     >
@@ -314,18 +372,25 @@ export function AlgorithmEditor() {
                       onChange={(event) => handleTextChange(index, event.target.value)}
                       onKeyDown={(event) => handleKeyDown(index, event)}
                       className={cn(
-                        'h-10 border-0 bg-transparent px-0 font-mono text-[0.95rem] text-slate-900 shadow-none ring-0 focus-visible:ring-0 dark:text-slate-100',
+                        'h-10 border-0 bg-transparent px-0 font-mono text-[0.95rem] text-slate-900 shadow-none ring-0 focus-visible:ring-0 dark:text-[#dcdcdc]',
                         line.level === 0 && !comment && 'font-semibold uppercase',
-                        comment && 'italic text-slate-500 dark:text-slate-400',
+                        comment && 'italic text-slate-500 dark:text-[#8aa6c1]',
                       )}
                     />
                   </div>
                 </div>
               )
             })}
-          </div>
-        </ScrollArea>
+              </div>
+            </ScrollArea>
+          </section>
+
+          <footer className="border-t border-[#d9cebc] bg-[#fbf3df] px-4 py-2 text-center text-[11px] text-slate-700 dark:border-[#3a3d41] dark:bg-[#252526] dark:text-[#b9c8d6]">
+            Desenvolvido com VS Code & Copilot Pro © 2026 • Curso Lógica de Programação e Construção de
+            Algoritmos • IFSP
+          </footer>
+        </Card>
       </section>
-    </Card>
+    </div>
   )
 }
