@@ -97,6 +97,14 @@ export function insertLineBelow(lines: EditorLine[], index: number, level: numbe
   return next
 }
 
+export function removeLine(lines: EditorLine[], index: number): EditorLine[] {
+  if (lines.length <= 1) {
+    return [createLine(lines[0]?.level ?? 1)]
+  }
+
+  return lines.filter((_, currentIndex) => currentIndex !== index)
+}
+
 export function moveLine(lines: EditorLine[], index: number, direction: -1 | 1): {
   lines: EditorLine[]
   nextIndex: number

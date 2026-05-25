@@ -1,6 +1,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   Download,
+  FilePlus2,
   FolderOpen,
   IndentDecrease,
   IndentIncrease,
@@ -19,6 +20,7 @@ import {
   moveLine,
   normalizeLines,
   parseTextToLines,
+  removeLine,
   serializeLinesToText,
   updateLineText,
   type EditorLine,
@@ -35,10 +37,12 @@ interface PendingFocus {
   selectionEnd?: number
 }
 
-const INITIAL_LINES: EditorLine[] = normalizeLines([createLine(1, '')])
+function createInitialLines(): EditorLine[] {
+  return normalizeLines([createLine(1, '')])
+}
 
 export function AlgorithmEditor() {
-  const [lines, setLines] = useState<EditorLine[]>(INITIAL_LINES)
+  const [lines, setLines] = useState<EditorLine[]>(() => createInitialLines())
   const [activeIndex, setActiveIndex] = useState(0)
   const [pendingFocus, setPendingFocus] = useState<PendingFocus | null>(null)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -97,6 +101,15 @@ export function AlgorithmEditor() {
     })
   }
 
+  function focusLineById(id: string, index: number, selectionStart?: number, selectionEnd?: number) {
+    setActiveIndex(index)
+    setPendingFocus({
+      id,
+      selectionStart,
+      selectionEnd: typeof selectionEnd === 'number' ? selectionEnd : selectionStart,
+    })
+  }
+
   function updateLines(nextLines: EditorLine[]) {
     setLines(normalizeLines(nextLines))
   }
@@ -132,9 +145,39 @@ export function AlgorithmEditor() {
     updateLines(updateLineText(lines, index, text))
   }
 
+  function removeCurrentLine(index: number, mode: 'backspace' | 'delete') {
+    const nextLines = normalizeLines(removeLine(lines, index))
+    updateLines(nextLines)
+
+    const nextIndex = Math.min(mode === 'backspace' ? Math.max(index - 1, 0) : index, nextLines.length - 1)
+    const nextLine = nextLines[nextIndex]
+
+    if (!nextLine) {
+      return
+    }
+
+    const caretPosition = mode === 'backspace' ? nextLine.text.length : 0
+    focusLineById(nextLine.id, nextIndex, caretPosition, caretPosition)
+  }
+
   function handleKeyDown(index: number, event: React.KeyboardEvent<HTMLInputElement>) {
     const selectionStart = event.currentTarget.selectionStart ?? event.currentTarget.value.length
     const selectionEnd = event.currentTarget.selectionEnd ?? selectionStart
+    const currentLine = lines[index]
+
+    if (!currentLine) {
+      return
+    }
+
+    if (
+      (event.key === 'Backspace' || event.key === 'Delete') &&
+      selectionStart === selectionEnd &&
+      currentLine.text === ''
+    ) {
+      event.preventDefault()
+      removeCurrentLine(index, event.key === 'Backspace' ? 'backspace' : 'delete')
+      return
+    }
 
     if (event.shiftKey && event.key === 'ArrowUp') {
       event.preventDefault()
@@ -183,10 +226,6 @@ export function AlgorithmEditor() {
     }
 
     event.preventDefault()
-    const currentLine = lines[index]
-    if (!currentLine) {
-      return
-    }
 
     if (currentLine.text.trim() === '') {
       updateLines(changeLineLevel(lines, index, -1))
@@ -196,7 +235,10 @@ export function AlgorithmEditor() {
 
     const next = insertLineBelow(lines, index, currentLine.level)
     updateLines(next)
-    focusLine(index + 1)
+    const insertedLine = next[index + 1]
+    if (insertedLine) {
+      focusLineById(insertedLine.id, index + 1, 0, 0)
+    }
   }
 
   function openFilePicker() {
@@ -240,11 +282,24 @@ export function AlgorithmEditor() {
     setTheme((currentTheme) => (currentTheme === 'light' ? 'dark' : 'light'))
   }
 
+  function createNewAlgorithm() {
+    const nextLines = createInitialLines()
+    setLines(nextLines)
+    setActiveIndex(0)
+
+    if (nextLines[0]) {
+      setPendingFocus({ id: nextLines[0].id, selectionStart: 0, selectionEnd: 0 })
+    }
+  }
+
+  const primarySidebarButtonClass =
+    'justify-start border border-[#345ca6] bg-[#3d6abf] text-white hover:bg-[#345ca6] dark:border-[#4b78cf] dark:bg-[#3d6abf] dark:text-white dark:hover:bg-[#4b78cf]'
+
   return (
     <div className="relative h-full">
       <aside className="hidden h-[calc(100vh-2rem)] w-72 flex-col rounded-xl border border-[#d6ccba] bg-[#fff9ef] p-4 shadow-lg md:fixed md:left-4 md:top-4 md:flex dark:border-[#3a3d41] dark:bg-[#252526]">
         <div className="space-y-3">
-          <h2 className="sidebar-title text-center text-slate-900 dark:text-slate-100">
+          <h2 className="sidebar-title text-center text-[#3d6abf] dark:text-[#3d6abf]">
             Editor de Algoritmo em Pseudocódigos
           </h2>
           <p className="sidebar-helper-text text-center text-slate-600 dark:text-[#d4d4d4]">
@@ -257,7 +312,7 @@ export function AlgorithmEditor() {
           onClick={toggleTheme}
           aria-label="Alternar entre modo claro e escuro"
           aria-pressed={theme === 'dark'}
-          className="mt-4 flex h-8 w-16 items-center rounded-full border border-slate-300 bg-slate-200 px-1 transition-colors dark:border-[#3a3d41] dark:bg-[#3c3c3c]"
+          className="mx-auto mt-4 flex h-8 w-16 items-center rounded-full border border-slate-300 bg-slate-200 px-1 transition-colors dark:border-[#3a3d41] dark:bg-[#3c3c3c]"
         >
           <span
             className={cn(
@@ -270,11 +325,15 @@ export function AlgorithmEditor() {
         </button>
 
         <div className="mt-4 grid gap-2">
-          <Button onClick={openFilePicker} size="sm" type="button" className="justify-start">
+          <Button onClick={createNewAlgorithm} size="sm" type="button" className={primarySidebarButtonClass}>
+            <FilePlus2 className="mr-2 h-4 w-4" />
+            Criar Novo
+          </Button>
+          <Button onClick={openFilePicker} size="sm" type="button" className={primarySidebarButtonClass}>
             <FolderOpen className="mr-2 h-4 w-4" />
             Abrir Arquivo
           </Button>
-          <Button onClick={saveFile} variant="secondary" size="sm" type="button" className="justify-start">
+          <Button onClick={saveFile} size="sm" type="button" className={primarySidebarButtonClass}>
             <Download className="mr-2 h-4 w-4" />
             Salvar Arquivo
           </Button>
