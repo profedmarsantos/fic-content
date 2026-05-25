@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Editor de Algoritmos Hierarquicos</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell" aria-label="Editor de Algoritmos Hierarquicos">
+    <header class="toolbar" role="toolbar" aria-label="Ferramentas do editor">
+      <button id="open-file-btn" type="button">Abrir Arquivo</button>
+      <button id="save-file-btn" type="button">Salvar Arquivo</button>
+      <button id="outdent-btn" type="button" aria-label="Diminuir recuo">&lt;-- Diminuir Recuo</button>
+      <button id="indent-btn" type="button" aria-label="Aumentar recuo">Aumentar Recuo --&gt;</button>
+      <input id="file-input" type="file" accept=".txt,text/plain" hidden>
+    </header>
+
+    <section class="editor-frame" aria-label="Area principal do editor">
+      <div id="editor" class="editor" role="list" aria-label="Linhas do algoritmo"></div>
+    </section>
+  </main>
+
+  <template id="line-template">
+    <div class="line" role="listitem">
+      <span class="gutter" aria-hidden="true"></span>
+      <span class="logical" aria-hidden="true"></span>
+      <input class="line-input" type="text" spellcheck="false" autocomplete="off">
+    </div>
+  </template>
+
+  <script src="script.js"></script>
+</body>
+</html>
