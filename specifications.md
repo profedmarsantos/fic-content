@@ -4,7 +4,7 @@
 O sistema é um editor de texto estruturado (Outliner) para descrever algoritmos lógicos através de níveis hierárquicos automatizados. 
 * **Plataforma:** Aplicação Web (Client-side apenas).
 * **Hospedagem:** GitHub Pages via GitHub Actions (`actions/pages`).
-* **Tecnologias:** HTML, CSS e Vanilla JavaScript.
+* **Tecnologias:** React, TypeScript, Vite, Tailwind CSS e componentes no padrão shadcn/ui.
 
 ## 2. Interface do Usuário (UI)
 A tela principal deve ser focada no editor de texto, dividida nos seguintes componentes:

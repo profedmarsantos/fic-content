@@ -1,0 +1,13 @@
+CALCULAR O DOBRO DE UM NÚMERO
+VAR
+    N: Real
+    DOBRO: Real
+INÍCIO
+// Fase de Entrada de Dados
+    Solicitar ao usuário que digite um número
+    Ler o valor digitado e guardar na variável N
+// Fase de Processamento e Saída
+    Multiplicar N por 2
+    Guardar o resultado na variável DOBRO
+    Exibir a mensagem "O dobro é: " e o valor de DOBRO
+FIM
