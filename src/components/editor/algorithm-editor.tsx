@@ -5,9 +5,11 @@ import {
   FolderOpen,
   IndentDecrease,
   IndentIncrease,
+  Menu,
   Moon,
   MoveVertical,
   Sun,
+  X,
 } from 'lucide-react'
 
 import {
@@ -44,6 +46,7 @@ function createInitialLines(): EditorLine[] {
 export function AlgorithmEditor() {
   const [lines, setLines] = useState<EditorLine[]>(() => createInitialLines())
   const [activeIndex, setActiveIndex] = useState(0)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [pendingFocus, setPendingFocus] = useState<PendingFocus | null>(null)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const savedTheme = localStorage.getItem('theme')
@@ -282,6 +285,10 @@ export function AlgorithmEditor() {
     setTheme((currentTheme) => (currentTheme === 'light' ? 'dark' : 'light'))
   }
 
+  function toggleSidebar() {
+    setIsSidebarCollapsed((currentValue) => !currentValue)
+  }
+
   function createNewAlgorithm() {
     const nextLines = createInitialLines()
     setLines(nextLines)
@@ -294,91 +301,199 @@ export function AlgorithmEditor() {
 
   const primarySidebarButtonClass =
     'justify-start border border-[#345ca6] bg-[#3d6abf] text-white hover:bg-[#345ca6] dark:border-[#4b78cf] dark:bg-[#3d6abf] dark:text-white dark:hover:bg-[#4b78cf]'
+  const compactSidebarButtonClass =
+    'h-10 w-10 border border-[#345ca6] bg-[#3d6abf] p-0 text-white hover:bg-[#345ca6] dark:border-[#4b78cf] dark:bg-[#3d6abf] dark:text-white dark:hover:bg-[#4b78cf]'
+  const cornerToggleButtonClass =
+    'absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full border border-[#345ca6] bg-[#3d6abf] text-white shadow-sm transition-colors hover:bg-[#345ca6] dark:border-[#4b78cf] dark:bg-[#3d6abf] dark:hover:bg-[#4b78cf]'
 
   return (
     <div className="relative h-full">
-      <aside className="hidden h-[calc(100vh-2rem)] w-72 flex-col rounded-xl border border-[#d6ccba] bg-[#fff9ef] p-4 shadow-lg md:fixed md:left-4 md:top-4 md:flex dark:border-[#3a3d41] dark:bg-[#252526]">
-        <div className="space-y-3">
-          <h2 className="sidebar-title text-center text-[#3d6abf] dark:text-[#3d6abf]">
-            Editor de Algoritmo em Pseudocódigos
-          </h2>
-          <p className="sidebar-helper-text text-center text-slate-600 dark:text-[#d4d4d4]">
-            Aqui você cria seus algoritmos em pseudocódigos numerados ou estruturados!
-          </p>
-        </div>
-
+      <aside
+        className={cn(
+          'hidden h-[calc(100vh-2rem)] flex-col rounded-xl border border-[#d6ccba] bg-[#fff9ef] shadow-lg transition-all duration-300 md:fixed md:left-4 md:top-4 md:flex dark:border-[#3a3d41] dark:bg-[#252526]',
+          isSidebarCollapsed ? 'w-16 items-center p-2 pt-12' : 'w-72 p-4',
+        )}
+      >
         <button
           type="button"
-          onClick={toggleTheme}
-          aria-label="Alternar entre modo claro e escuro"
-          aria-pressed={theme === 'dark'}
-          className="mx-auto mt-4 flex h-8 w-16 items-center rounded-full border border-slate-300 bg-slate-200 px-1 transition-colors dark:border-[#3a3d41] dark:bg-[#3c3c3c]"
+          onClick={toggleSidebar}
+          aria-label={isSidebarCollapsed ? 'Expandir sidebar' : 'Recolher sidebar'}
+          aria-pressed={isSidebarCollapsed}
+          className={cornerToggleButtonClass}
         >
-          <span
-            className={cn(
-              'flex h-6 w-6 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm transition-transform dark:bg-[#0e639c] dark:text-white',
-              theme === 'dark' ? 'translate-x-8' : 'translate-x-0',
-            )}
-          >
-            {theme === 'light' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-          </span>
+          {isSidebarCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
         </button>
 
-        <div className="mt-4 grid gap-2">
-          <Button onClick={createNewAlgorithm} size="sm" type="button" className={primarySidebarButtonClass}>
-            <FilePlus2 className="mr-2 h-4 w-4" />
-            Criar Novo
-          </Button>
-          <Button onClick={openFilePicker} size="sm" type="button" className={primarySidebarButtonClass}>
-            <FolderOpen className="mr-2 h-4 w-4" />
-            Abrir Arquivo
-          </Button>
-          <Button onClick={saveFile} size="sm" type="button" className={primarySidebarButtonClass}>
-            <Download className="mr-2 h-4 w-4" />
-            Salvar Arquivo
-          </Button>
-          <Button
-            onClick={() => indentCurrentLine(-1)}
-            variant="outline"
-            size="sm"
-            type="button"
-            className="justify-start"
-          >
-            <IndentDecrease className="mr-2 h-4 w-4" />
-            Diminuir Recuo
-          </Button>
-          <Button
-            onClick={() => indentCurrentLine(1)}
-            variant="outline"
-            size="sm"
-            type="button"
-            className="justify-start"
-          >
-            <IndentIncrease className="mr-2 h-4 w-4" />
-            Aumentar Recuo
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".txt,text/plain"
-            className="hidden"
-            onChange={handleFileSelection}
-          />
-        </div>
+        {isSidebarCollapsed ? (
+          <div className="mt-2 flex w-full flex-1 flex-col items-center gap-2">
+            <Button
+              onClick={createNewAlgorithm}
+              size="sm"
+              type="button"
+              className={compactSidebarButtonClass}
+              aria-label="Criar Novo"
+              title="Criar Novo"
+            >
+              <FilePlus2 className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={openFilePicker}
+              size="sm"
+              type="button"
+              className={compactSidebarButtonClass}
+              aria-label="Abrir Arquivo"
+              title="Abrir Arquivo"
+            >
+              <FolderOpen className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={saveFile}
+              size="sm"
+              type="button"
+              className={compactSidebarButtonClass}
+              aria-label="Salvar Arquivo"
+              title="Salvar Arquivo"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={() => indentCurrentLine(-1)}
+              size="sm"
+              type="button"
+              className={compactSidebarButtonClass}
+              aria-label="Diminuir Recuo"
+              title="Diminuir Recuo"
+            >
+              <IndentDecrease className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={() => indentCurrentLine(1)}
+              size="sm"
+              type="button"
+              className={compactSidebarButtonClass}
+              aria-label="Aumentar Recuo"
+              title="Aumentar Recuo"
+            >
+              <IndentIncrease className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={toggleTheme}
+              size="sm"
+              type="button"
+              className={compactSidebarButtonClass}
+              aria-label="Alternar entre modo claro e escuro"
+              title="Alternar entre modo claro e escuro"
+              aria-pressed={theme === 'dark'}
+            >
+              {theme === 'light' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".txt,text/plain"
+              className="hidden"
+              onChange={handleFileSelection}
+            />
+          </div>
+        ) : (
+          <>
+            <div className="space-y-3 pr-10">
+              <h2 className="sidebar-title text-left text-[#3d6abf] dark:text-[#3d6abf]">
+                Editor de Algoritmo em Pseudocódigos
+              </h2>
+              <p className="sidebar-helper-text text-center text-slate-600 dark:text-[#d4d4d4]">
+                Aqui você cria seus algoritmos em pseudocódigos numerados ou estruturados!
+              </p>
+            </div>
 
-        <div className="mt-6 rounded-md border border-[#d6ccba] bg-[#fffdf8] p-3 text-xs text-slate-600 dark:border-[#3a3d41] dark:bg-[#2d2d30] dark:text-[#c8c8c8]">
-          <p className="mb-2 flex items-center font-semibold text-slate-800 dark:text-[#e6e6e6]">
-            <MoveVertical className="mr-1 h-3.5 w-3.5" />
-            Atalhos
-          </p>
-          <p>Shift + →: aumentar recuo</p>
-          <p>Shift + ←: diminuir recuo</p>
-          <p>Shift + ↑: mover linha para cima</p>
-          <p>Shift + ↓: mover linha para baixo</p>
-        </div>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label="Alternar entre modo claro e escuro"
+              aria-pressed={theme === 'dark'}
+              className="mx-auto mt-4 flex h-8 w-16 items-center rounded-full border border-slate-300 bg-slate-200 px-1 transition-colors dark:border-[#3a3d41] dark:bg-[#3c3c3c]"
+            >
+              <span
+                className={cn(
+                  'flex h-6 w-6 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm transition-transform dark:bg-[#0e639c] dark:text-white',
+                  theme === 'dark' ? 'translate-x-8' : 'translate-x-0',
+                )}
+              >
+                {theme === 'light' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+              </span>
+            </button>
+
+            <div className="mt-4 grid gap-2">
+              <Button onClick={createNewAlgorithm} size="sm" type="button" className={primarySidebarButtonClass}>
+                <FilePlus2 className="mr-2 h-4 w-4" />
+                Criar Novo
+              </Button>
+              <Button onClick={openFilePicker} size="sm" type="button" className={primarySidebarButtonClass}>
+                <FolderOpen className="mr-2 h-4 w-4" />
+                Abrir Arquivo
+              </Button>
+              <Button onClick={saveFile} size="sm" type="button" className={primarySidebarButtonClass}>
+                <Download className="mr-2 h-4 w-4" />
+                Salvar Arquivo
+              </Button>
+            </div>
+
+            <div className="my-4 h-px bg-[#d6ccba] dark:bg-[#3a3d41]" />
+
+            <div className="space-y-2">
+              <p className="sidebar-section-label text-[#3d6abf] dark:text-[#6ea0ff]">Recuos</p>
+              <div className="grid gap-2">
+                <Button
+                  onClick={() => indentCurrentLine(-1)}
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  className="justify-start"
+                >
+                  <IndentDecrease className="mr-2 h-4 w-4" />
+                  Diminuir Recuo
+                </Button>
+                <Button
+                  onClick={() => indentCurrentLine(1)}
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  className="justify-start"
+                >
+                  <IndentIncrease className="mr-2 h-4 w-4" />
+                  Aumentar Recuo
+                </Button>
+              </div>
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".txt,text/plain"
+              className="hidden"
+              onChange={handleFileSelection}
+            />
+
+            <div className="mt-6 rounded-md border border-[#d6ccba] bg-[#fffdf8] p-3 text-xs text-slate-600 dark:border-[#3a3d41] dark:bg-[#2d2d30] dark:text-[#c8c8c8]">
+              <p className="mb-2 flex items-center font-semibold text-slate-800 dark:text-[#e6e6e6]">
+                <MoveVertical className="mr-1 h-3.5 w-3.5" />
+                Atalhos
+              </p>
+              <p>Shift + →: aumentar recuo</p>
+              <p>Shift + ←: diminuir recuo</p>
+              <p>Shift + ↑: mover linha para cima</p>
+              <p>Shift + ↓: mover linha para baixo</p>
+            </div>
+          </>
+        )}
       </aside>
 
-      <section className="mx-auto flex h-full min-h-0 min-w-0 max-w-6xl items-center justify-center md:pl-72">
+      <section
+        className={cn(
+          'mx-auto flex h-full min-h-0 min-w-0 max-w-6xl items-center justify-center transition-all duration-300',
+          isSidebarCollapsed ? 'md:pl-20' : 'md:pl-72',
+        )}
+      >
         <Card className="flex h-full min-h-0 w-full max-w-5xl flex-col overflow-hidden border-[#d9cebc] bg-[#f7ecd2] shadow-2xl dark:border-[#3a3d41] dark:bg-[#1e1e1e]">
           <div className="border-b border-[#d9cebc] bg-[#fbf3df] px-5 py-3 dark:border-[#3a3d41] dark:bg-[#252526]">
             <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Editor de Algoritmo em Pseudocódigos</h1>
