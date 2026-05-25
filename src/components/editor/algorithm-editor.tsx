@@ -303,8 +303,10 @@ export function AlgorithmEditor() {
     'justify-start border border-[#345ca6] bg-[#3d6abf] text-white hover:bg-[#345ca6] dark:border-[#4b78cf] dark:bg-[#3d6abf] dark:text-white dark:hover:bg-[#4b78cf]'
   const compactSidebarButtonClass =
     'h-10 w-10 border border-[#345ca6] bg-[#3d6abf] p-0 text-white hover:bg-[#345ca6] dark:border-[#4b78cf] dark:bg-[#3d6abf] dark:text-white dark:hover:bg-[#4b78cf]'
-  const cornerToggleButtonClass =
-    'absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full border border-[#345ca6] bg-[#3d6abf] text-white shadow-sm transition-colors hover:bg-[#345ca6] dark:border-[#4b78cf] dark:bg-[#3d6abf] dark:hover:bg-[#4b78cf]'
+  const compactOutlineButtonClass =
+    'h-10 w-10 border border-[#d6ccba] bg-[#fff9ef] p-0 text-[#3d6abf] hover:bg-[#f3ead7] dark:border-[#3a3d41] dark:bg-[#2d2d30] dark:text-[#6ea0ff] dark:hover:bg-[#38383d]'
+  const compactToggleButtonClass =
+    'absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-md border border-[#d6ccba] bg-[#fff9ef] text-[#3d6abf] shadow-sm transition-colors hover:bg-[#f3ead7] dark:border-[#3a3d41] dark:bg-[#2d2d30] dark:text-[#6ea0ff] dark:hover:bg-[#38383d]'
 
   return (
     <div className="relative h-full">
@@ -319,9 +321,9 @@ export function AlgorithmEditor() {
           onClick={toggleSidebar}
           aria-label={isSidebarCollapsed ? 'Expandir sidebar' : 'Recolher sidebar'}
           aria-pressed={isSidebarCollapsed}
-          className={cornerToggleButtonClass}
+          className={compactToggleButtonClass}
         >
-          {isSidebarCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          {isSidebarCollapsed ? <Menu className="h-3 w-3" /> : <X className="h-3 w-3" />}
         </button>
 
         {isSidebarCollapsed ? (
@@ -356,26 +358,34 @@ export function AlgorithmEditor() {
             >
               <Download className="h-4 w-4" />
             </Button>
-            <Button
-              onClick={() => indentCurrentLine(-1)}
-              size="sm"
-              type="button"
-              className={compactSidebarButtonClass}
-              aria-label="Diminuir Recuo"
-              title="Diminuir Recuo"
-            >
-              <IndentDecrease className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={() => indentCurrentLine(1)}
-              size="sm"
-              type="button"
-              className={compactSidebarButtonClass}
-              aria-label="Aumentar Recuo"
-              title="Aumentar Recuo"
-            >
-              <IndentIncrease className="h-4 w-4" />
-            </Button>
+
+            <div className="my-1 h-px w-8 bg-[#d6ccba] dark:bg-[#3a3d41]" />
+
+            <div className="flex flex-col items-center gap-2">
+              <Button
+                onClick={() => indentCurrentLine(-1)}
+                size="sm"
+                type="button"
+                className={compactOutlineButtonClass}
+                aria-label="Diminuir Recuo"
+                title="Diminuir Recuo"
+              >
+                <IndentDecrease className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => indentCurrentLine(1)}
+                size="sm"
+                type="button"
+                className={compactOutlineButtonClass}
+                aria-label="Aumentar Recuo"
+                title="Aumentar Recuo"
+              >
+                <IndentIncrease className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="my-1 h-px w-8 bg-[#d6ccba] dark:bg-[#3a3d41]" />
+
             <Button
               onClick={toggleTheme}
               size="sm"
