@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Download, FolderOpen, IndentDecrease, IndentIncrease } from 'lucide-react'
 
 import {
+  INDENT_SIZE,
   changeLineLevel,
   computeLogicalLabels,
   createLine,
@@ -79,6 +80,18 @@ export function AlgorithmEditor() {
   }
 
   function handleKeyDown(index: number, event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.shiftKey && event.key === 'ArrowRight') {
+      event.preventDefault()
+      indentCurrentLine(1)
+      return
+    }
+
+    if (event.shiftKey && event.key === 'ArrowLeft') {
+      event.preventDefault()
+      indentCurrentLine(-1)
+      return
+    }
+
     if (event.key === 'Tab') {
       event.preventDefault()
       indentCurrentLine(event.shiftKey ? -1 : 1)
@@ -144,12 +157,12 @@ export function AlgorithmEditor() {
   }
 
   return (
-    <Card className="overflow-hidden border-slate-200 shadow-xl">
+    <Card className="flex h-full min-h-0 flex-col overflow-hidden border-slate-200 shadow-xl">
       <CardHeader className="space-y-3 border-b bg-white">
         <CardTitle>Editor de Algoritmos Hierarquicos</CardTitle>
         <CardDescription>
           Estrutura hierarquica com numeracao automatica, atalhos de teclado e importacao/exportacao de
-          arquivos .txt.
+          arquivos .txt com recuo em passos fixos de 4 espacos por nivel.
         </CardDescription>
 
         <div className="flex flex-wrap gap-2">
@@ -179,9 +192,9 @@ export function AlgorithmEditor() {
         </div>
       </CardHeader>
 
-      <CardContent className="p-0">
-        <ScrollArea className="h-[72vh] bg-slate-50">
-          <div className="min-h-[60vh]">
+      <CardContent className="min-h-0 flex-1 p-0">
+        <ScrollArea className="h-full bg-slate-50">
+          <div>
             {lines.map((line, index) => {
               const comment = isComment(line.text)
               const logical = logicalLabels[index]
@@ -199,10 +212,13 @@ export function AlgorithmEditor() {
                     {index + 1}
                   </span>
 
-                  <div className="flex items-center pr-2" style={{ paddingLeft: `${0.6 + line.level * 1.6}rem` }}>
+                  <div
+                    className="flex items-center pr-2"
+                    style={{ paddingLeft: `calc(0.6rem + ${line.level * INDENT_SIZE}ch)` }}
+                  >
                     <span
                       className={cn(
-                        'mr-2 min-w-6 font-mono text-xs font-semibold tracking-wide text-slate-600',
+                        'mr-1 font-mono text-[0.95rem] text-slate-700',
                         comment && 'opacity-0',
                       )}
                     >
