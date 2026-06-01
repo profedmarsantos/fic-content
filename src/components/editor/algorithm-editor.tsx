@@ -9,7 +9,6 @@ import {
   Moon,
   MoveVertical,
   Sun,
-  X,
 } from 'lucide-react'
 
 import {
@@ -305,110 +304,128 @@ export function AlgorithmEditor() {
     'h-10 w-10 border border-[#345ca6] bg-[#3d6abf] p-0 text-white hover:bg-[#345ca6] dark:border-[#4b78cf] dark:bg-[#3d6abf] dark:text-white dark:hover:bg-[#4b78cf]'
   const compactOutlineButtonClass =
     'h-10 w-10 border border-[#d6ccba] bg-[#fff9ef] p-0 text-[#3d6abf] hover:bg-[#f3ead7] dark:border-[#3a3d41] dark:bg-[#2d2d30] dark:text-[#6ea0ff] dark:hover:bg-[#38383d]'
-  const compactToggleButtonClass =
-    'absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-md border border-[#d6ccba] bg-[#fff9ef] text-[#3d6abf] shadow-sm transition-colors hover:bg-[#f3ead7] dark:border-[#3a3d41] dark:bg-[#2d2d30] dark:text-[#6ea0ff] dark:hover:bg-[#38383d]'
 
   return (
     <div className="relative h-full">
-      <aside
+      <div
         className={cn(
-          'hidden h-[calc(100vh-2rem)] flex-col rounded-xl border border-[#d6ccba] bg-[#fff9ef] shadow-lg transition-all duration-300 md:fixed md:left-4 md:top-4 md:flex dark:border-[#3a3d41] dark:bg-[#252526]',
-          isSidebarCollapsed ? 'w-16 items-center p-2 pt-12' : 'w-72 p-4',
+          'hidden md:block md:fixed md:left-4 md:top-4 relative transition-all duration-300',
+          isSidebarCollapsed ? 'w-16' : 'w-72',
         )}
       >
-        <button
-          type="button"
-          onClick={toggleSidebar}
-          aria-label={isSidebarCollapsed ? 'Expandir sidebar' : 'Recolher sidebar'}
-          aria-pressed={isSidebarCollapsed}
-          className={compactToggleButtonClass}
-        >
-          {isSidebarCollapsed ? <Menu className="h-3 w-3" /> : <X className="h-3 w-3" />}
-        </button>
-
-        {isSidebarCollapsed ? (
-          <div className="mt-2 flex w-full flex-1 flex-col items-center gap-2">
-            <Button
-              onClick={createNewAlgorithm}
-              size="sm"
-              type="button"
-              className={compactSidebarButtonClass}
-              aria-label="Criar Novo"
-              title="Criar Novo"
-            >
-              <FilePlus2 className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={openFilePicker}
-              size="sm"
-              type="button"
-              className={compactSidebarButtonClass}
-              aria-label="Abrir Arquivo"
-              title="Abrir Arquivo"
-            >
-              <FolderOpen className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={saveFile}
-              size="sm"
-              type="button"
-              className={compactSidebarButtonClass}
-              aria-label="Salvar Arquivo"
-              title="Salvar Arquivo"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
-
-            <div className="my-1 h-px w-8 bg-[#d6ccba] dark:bg-[#3a3d41]" />
-
-            <div className="flex flex-col items-center gap-2">
+        {!isSidebarCollapsed && (
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label="Recolher sidebar"
+            title="Recolher sidebar"
+            className="absolute left-full top-[20px] z-10 flex h-7 w-5 items-center justify-center rounded-r-md bg-gray-500 text-sm text-white hover:bg-gray-600"
+          >
+            x
+          </button>
+        )}
+        <aside
+        className={cn(
+          'h-[calc(100vh-2rem)] w-full flex flex-col overflow-hidden rounded-xl border border-[#d6ccba] bg-[#fff9ef] shadow-lg dark:border-[#3a3d41] dark:bg-[#252526]',
+          isSidebarCollapsed ? 'p-2' : 'p-4',
+        )}
+      >
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          {isSidebarCollapsed ? (
+            <div className="flex w-full flex-1 flex-col items-center gap-2">
               <Button
-                onClick={() => indentCurrentLine(-1)}
+                onClick={toggleSidebar}
                 size="sm"
                 type="button"
                 className={compactOutlineButtonClass}
-                aria-label="Diminuir Recuo"
-                title="Diminuir Recuo"
+                aria-label="Expandir sidebar"
+                title="Expandir sidebar"
+                aria-pressed={isSidebarCollapsed}
               >
-                <IndentDecrease className="h-4 w-4" />
+                <Menu className="h-4 w-4" />
               </Button>
+
               <Button
-                onClick={() => indentCurrentLine(1)}
+                onClick={createNewAlgorithm}
                 size="sm"
                 type="button"
-                className={compactOutlineButtonClass}
-                aria-label="Aumentar Recuo"
-                title="Aumentar Recuo"
+                className={compactSidebarButtonClass}
+                aria-label="Criar Novo"
+                title="Criar Novo"
               >
-                <IndentIncrease className="h-4 w-4" />
+                <FilePlus2 className="h-4 w-4" />
               </Button>
+              <Button
+                onClick={openFilePicker}
+                size="sm"
+                type="button"
+                className={compactSidebarButtonClass}
+                aria-label="Abrir Arquivo"
+                title="Abrir Arquivo"
+              >
+                <FolderOpen className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={saveFile}
+                size="sm"
+                type="button"
+                className={compactSidebarButtonClass}
+                aria-label="Salvar Arquivo"
+                title="Salvar Arquivo"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+
+              <div className="my-1 h-px w-8 bg-[#d6ccba] dark:bg-[#3a3d41]" />
+
+              <div className="flex flex-col items-center gap-2">
+                <Button
+                  onClick={() => indentCurrentLine(-1)}
+                  size="sm"
+                  type="button"
+                  className={compactOutlineButtonClass}
+                  aria-label="Diminuir Recuo"
+                  title="Diminuir Recuo"
+                >
+                  <IndentDecrease className="h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={() => indentCurrentLine(1)}
+                  size="sm"
+                  type="button"
+                  className={compactOutlineButtonClass}
+                  aria-label="Aumentar Recuo"
+                  title="Aumentar Recuo"
+                >
+                  <IndentIncrease className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="my-1 h-px w-8 bg-[#d6ccba] dark:bg-[#3a3d41]" />
+
+              <Button
+                onClick={toggleTheme}
+                size="sm"
+                type="button"
+                className={compactSidebarButtonClass}
+                aria-label="Alternar entre modo claro e escuro"
+                title="Alternar entre modo claro e escuro"
+                aria-pressed={theme === 'dark'}
+              >
+                {theme === 'light' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".txt,text/plain"
+                className="hidden"
+                onChange={handleFileSelection}
+              />
             </div>
-
-            <div className="my-1 h-px w-8 bg-[#d6ccba] dark:bg-[#3a3d41]" />
-
-            <Button
-              onClick={toggleTheme}
-              size="sm"
-              type="button"
-              className={compactSidebarButtonClass}
-              aria-label="Alternar entre modo claro e escuro"
-              title="Alternar entre modo claro e escuro"
-              aria-pressed={theme === 'dark'}
-            >
-              {theme === 'light' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".txt,text/plain"
-              className="hidden"
-              onChange={handleFileSelection}
-            />
-          </div>
-        ) : (
-          <>
-            <div className="space-y-3 pr-10">
-              <h2 className="sidebar-title text-left text-[#3d6abf] dark:text-[#3d6abf]">
+          ) : (
+            <>
+            <div className="space-y-3">
+              <h2 className="sidebar-title text-center text-[#3d6abf] dark:text-[#3d6abf]">
                 Editor de Algoritmo em Pseudocódigos
               </h2>
               <p className="sidebar-helper-text text-center text-slate-600 dark:text-[#d4d4d4]">
@@ -496,7 +513,10 @@ export function AlgorithmEditor() {
             </div>
           </>
         )}
+        </div>
       </aside>
+
+      </div>
 
       <section
         className={cn(
