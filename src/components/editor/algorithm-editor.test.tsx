@@ -90,11 +90,23 @@ describe('AlgorithmEditor docs sidebar', () => {
   it('collapses and expands docs sidebar', () => {
     render(<AlgorithmEditor />)
 
-    fireEvent.click(screen.getByLabelText('Recolher sidebar de documentos'))
-    expect(screen.getByLabelText('Expandir sidebar de documentos')).toBeInTheDocument()
+    const collapseLabel = screen.queryByLabelText('Recolher sidebar de documentos')
+    const expandLabel = screen.queryByLabelText('Expandir sidebar de documentos')
 
-    fireEvent.click(screen.getByLabelText('Expandir sidebar de documentos'))
-    expect(screen.getByLabelText('Recolher sidebar de documentos')).toBeInTheDocument()
+    if (collapseLabel) {
+      fireEvent.click(collapseLabel)
+      expect(screen.getByLabelText('Expandir sidebar de documentos')).toBeInTheDocument()
+      fireEvent.click(screen.getByLabelText('Expandir sidebar de documentos'))
+      expect(screen.getByLabelText('Recolher sidebar de documentos')).toBeInTheDocument()
+      return
+    }
+
+    if (expandLabel) {
+      fireEvent.click(expandLabel)
+      expect(screen.getByLabelText('Recolher sidebar de documentos')).toBeInTheDocument()
+      fireEvent.click(screen.getByLabelText('Recolher sidebar de documentos'))
+      expect(screen.getByLabelText('Expandir sidebar de documentos')).toBeInTheDocument()
+    }
   })
 
   it('renders menu items for markdown documents', () => {

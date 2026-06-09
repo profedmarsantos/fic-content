@@ -326,13 +326,39 @@ export function AlgorithmEditor() {
     'h-10 w-10 border border-[#345ca6] bg-[#3d6abf] p-0 text-white hover:bg-[#345ca6] dark:border-[#4b78cf] dark:bg-[#3d6abf] dark:text-white dark:hover:bg-[#4b78cf]'
   const compactOutlineButtonClass =
     'h-10 w-10 border border-[#d6ccba] bg-[#fff9ef] p-0 text-[#3d6abf] hover:bg-[#f3ead7] dark:border-[#3a3d41] dark:bg-[#2d2d30] dark:text-[#6ea0ff] dark:hover:bg-[#38383d]'
+    const sidebarWidthClass = 'w-64'
+    const collapsedSidebarWidthClass = 'w-16'
+  const editorWidthClass = 'w-full md:w-[960px] md:min-w-[960px] md:shrink-0'
+
+    useLayoutEffect(() => {
+      function syncSidebarState() {
+        const viewportWidth = window.innerWidth
+      const sidebarExpandedWidth = 256 * 2
+      const sidebarCollapsedWidth = 64 * 2
+      const editorWidth = 960
+      const horizontalPadding = 32
+      const needsCollapsedSidebars =
+        viewportWidth < sidebarExpandedWidth + editorWidth + horizontalPadding ||
+        viewportWidth < sidebarCollapsedWidth + editorWidth + horizontalPadding
+
+        if (needsCollapsedSidebars) {
+          setIsSidebarCollapsed(true)
+          setIsDocsSidebarCollapsed(true)
+        }
+      }
+
+      syncSidebarState()
+      window.addEventListener('resize', syncSidebarState)
+
+      return () => window.removeEventListener('resize', syncSidebarState)
+    }, [])
 
   return (
     <div className="relative h-full">
       <div
         className={cn(
           'hidden md:block md:fixed md:left-4 md:top-4 relative transition-all duration-300',
-          isSidebarCollapsed ? 'w-16' : 'w-72',
+          isSidebarCollapsed ? collapsedSidebarWidthClass : sidebarWidthClass,
         )}
       >
         {!isSidebarCollapsed && (
@@ -543,7 +569,7 @@ export function AlgorithmEditor() {
       <div
         className={cn(
           'hidden md:block md:fixed md:right-4 md:top-4 relative transition-all duration-300',
-          isDocsSidebarCollapsed ? 'w-16' : 'w-72',
+          isDocsSidebarCollapsed ? collapsedSidebarWidthClass : sidebarWidthClass,
         )}
       >
         {!isDocsSidebarCollapsed && (
@@ -620,12 +646,12 @@ export function AlgorithmEditor() {
 
       <section
         className={cn(
-          'mx-auto flex h-full min-h-0 min-w-0 max-w-6xl items-center justify-center transition-all duration-300',
-          isSidebarCollapsed ? 'md:pl-20' : 'md:pl-72',
-          isDocsSidebarCollapsed ? 'md:pr-20' : 'md:pr-72',
+          'mx-auto flex h-full min-h-0 min-w-0 items-center justify-center transition-all duration-300',
+          isSidebarCollapsed ? 'md:pl-24' : 'md:pl-72',
+          isDocsSidebarCollapsed ? 'md:pr-24' : 'md:pr-72',
         )}
       >
-        <Card className="flex h-full min-h-0 w-full max-w-5xl flex-col overflow-hidden border-[#d9cebc] bg-[#f7ecd2] shadow-2xl dark:border-[#3a3d41] dark:bg-[#1e1e1e]">
+        <Card className={cn('flex h-full min-h-0 flex-none flex-col overflow-hidden border-[#d9cebc] bg-[#f7ecd2] shadow-2xl dark:border-[#3a3d41] dark:bg-[#1e1e1e]', editorWidthClass)}>
           <div className="border-b border-[#d9cebc] bg-[#fbf3df] px-5 py-3 dark:border-[#3a3d41] dark:bg-[#252526]">
             <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Editor de Algoritmo em Pseudocódigos</h1>
           </div>
