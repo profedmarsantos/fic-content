@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   Download,
   FilePlus2,
+  FileText,
   FolderOpen,
   IndentDecrease,
   IndentIncrease,
@@ -26,6 +27,7 @@ import {
   updateLineText,
   type EditorLine,
 } from '@/lib/editor'
+import { getDocMenuItems, openDocInNewTab } from '@/lib/docs'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -46,6 +48,7 @@ export function AlgorithmEditor() {
   const [lines, setLines] = useState<EditorLine[]>(() => createInitialLines())
   const [activeIndex, setActiveIndex] = useState(0)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isDocsSidebarCollapsed, setIsDocsSidebarCollapsed] = useState(false)
   const [pendingFocus, setPendingFocus] = useState<PendingFocus | null>(null)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const savedTheme = localStorage.getItem('theme')
@@ -57,6 +60,7 @@ export function AlgorithmEditor() {
 
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map())
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const docsMenuItems = useMemo(() => getDocMenuItems(), [])
 
   const logicalLabels = useMemo(() => computeLogicalLabels(lines), [lines])
 
@@ -125,13 +129,18 @@ export function AlgorithmEditor() {
   }
 
   function moveCurrentLine(direction: -1 | 1, selectionStart: number, selectionEnd: number) {
+    const currentLine = lines[activeIndex]
+    if (!currentLine) {
+      return
+    }
+
     const result = moveLine(lines, activeIndex, direction)
     if (result.nextIndex === activeIndex) {
       return
     }
 
     updateLines(result.lines)
-    focusLine(result.nextIndex, selectionStart, selectionEnd)
+    focusLineById(currentLine.id, result.nextIndex, selectionStart, selectionEnd)
   }
 
   function navigateLine(direction: -1 | 1, selectionStart: number, selectionEnd: number) {
@@ -286,6 +295,19 @@ export function AlgorithmEditor() {
 
   function toggleSidebar() {
     setIsSidebarCollapsed((currentValue) => !currentValue)
+  }
+
+  function toggleDocsSidebar() {
+    setIsDocsSidebarCollapsed((currentValue) => !currentValue)
+  }
+
+  async function openDoc(itemId: string) {
+    const item = docsMenuItems.find((entry) => entry.id === itemId)
+    if (!item) {
+      return
+    }
+
+    await openDocInNewTab(item)
   }
 
   function createNewAlgorithm() {
@@ -518,10 +540,105 @@ export function AlgorithmEditor() {
 
       </div>
 
+      <div
+        className={cn(
+          'hidden md:block md:fixed md:right-4 md:top-4 relative transition-all duration-300',
+          isDocsSidebarCollapsed ? 'w-16' : 'w-72',
+        )}
+      >
+        {!isDocsSidebarCollapsed && (
+          <button
+            type="button"
+            onClick={toggleDocsSidebar}
+            aria-label="Recolher sidebar de documentos"
+            title="Recolher sidebar de documentos"
+            className="absolute right-full top-[20px] z-10 flex h-7 w-5 items-center justify-center rounded-l-md bg-gray-500 text-sm text-white hover:bg-gray-600"
+          >
+            x
+          </button>
+        )}
+        <aside
+          className={cn(
+            'h-[calc(100vh-2rem)] w-full flex flex-col overflow-hidden rounded-xl border border-[#d6ccba] bg-[#fff9ef] shadow-lg dark:border-[#3a3d41] dark:bg-[#252526]',
+            isDocsSidebarCollapsed ? 'p-2' : 'p-4',
+          )}
+        >
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+            {isDocsSidebarCollapsed ? (
+              <div className="flex w-full flex-1 flex-col items-center gap-2">
+                <Button
+                  onClick={toggleDocsSidebar}
+                  size="sm"
+                  type="button"
+                  className={compactOutlineButtonClass}
+                  aria-label="Expandir sidebar de documentos"
+                  title="Expandir sidebar de documentos"
+                  aria-pressed={isDocsSidebarCollapsed}
+                >
+                  <Menu className="h-4 w-4" />
+                </Button>
+
+                <div className="my-1 h-px w-8 bg-[#d6ccba] dark:bg-[#3a3d41]" />
+
+                {docsMenuItems.map((item) => (
+                  <Button
+                    key={item.id}
+                    onClick={() => openDoc(item.id)}
+                    size="sm"
+                    type="button"
+                    className={compactSidebarButtonClass}
+                    aria-label={`Abrir documento ${item.label}`}
+                    title={item.label}
+                  >
+                    <FileText className="h-4 w-4" />
+                  </Button>
+                ))}
+              </div>
+            ) : (
+              <>
+                <div className="space-y-3">
+                  <h2 className="sidebar-title text-center text-[#3d6abf] dark:text-[#3d6abf]">
+                    Biblioteca
+                  </h2>
+                  <p className="sidebar-helper-text text-center text-slate-600 dark:text-[#d4d4d4]">
+                    Documentos em Markdown para leitura em formato de folha.
+                  </p>
+                </div>
+
+                <div className="mt-4 grid gap-2">
+                  {docsMenuItems.map((item) => (
+                    <Button
+                      key={item.id}
+                      onClick={() => openDoc(item.id)}
+                      size="sm"
+                      type="button"
+                      className={primarySidebarButtonClass}
+                      aria-label={`Abrir documento ${item.label}`}
+                      title={item.sourcePath}
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      {item.label}
+                    </Button>
+                  ))}
+                </div>
+
+                <div className="mt-6 rounded-md border border-[#d6ccba] bg-[#fffdf8] p-3 text-xs text-slate-600 dark:border-[#3a3d41] dark:bg-[#2d2d30] dark:text-[#c8c8c8]">
+                  <p className="mb-2 font-semibold text-slate-800 dark:text-[#e6e6e6]">Fonte dos itens</p>
+                  <p className="leading-5">
+                    Os arquivos são carregados automaticamente da pasta /src/docs, sem cadastro manual.
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+        </aside>
+      </div>
+
       <section
         className={cn(
           'mx-auto flex h-full min-h-0 min-w-0 max-w-6xl items-center justify-center transition-all duration-300',
           isSidebarCollapsed ? 'md:pl-20' : 'md:pl-72',
+          isDocsSidebarCollapsed ? 'md:pr-20' : 'md:pr-72',
         )}
       >
         <Card className="flex h-full min-h-0 w-full max-w-5xl flex-col overflow-hidden border-[#d9cebc] bg-[#f7ecd2] shadow-2xl dark:border-[#3a3d41] dark:bg-[#1e1e1e]">
