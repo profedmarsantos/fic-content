@@ -15,12 +15,14 @@ describe('docs helpers', () => {
     const items = buildDocMenuItemsFromModules(modules)
 
     expect(items).toHaveLength(2)
+    expect(items[0].label).toBe('Conteúdo')
+    expect(items[1].label).toBe('Dados e Operadores')
     expect(items[0].sourcePath).toContain('/src/docs/')
     expect(items[1].sourcePath).toContain('/src/docs/')
   })
 
   it('creates a short label that represents module purpose', () => {
-    const label = toShortDocLabel('Lista de Exercícios_ Módulo 4 (Estruturas Condicionais).md')
-    expect(label).toBe('Módulo 4: Estruturas Condicionais')
+    const label = toShortDocLabel('Lista de Exercícios_ Módulo 6 (Vetores, Modularização e Integração).md')
+    expect(label).toBe('Funções e Modularização')
   })
 })

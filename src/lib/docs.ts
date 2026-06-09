@@ -4,10 +4,60 @@ export interface DocMenuItem {
   id: string
   label: string
   sourcePath: string
+  order: number
   loadContent: () => Promise<string>
 }
 
 type DocModuleMap = Record<string, () => Promise<string>>
+
+interface DocLabelConfig {
+  pattern: RegExp
+  label: string
+  order: number
+}
+
+const DOC_LABEL_CONFIGS: DocLabelConfig[] = [
+  { pattern: /^Conteúdo$/i, label: 'Conteúdo', order: 0 },
+  {
+    pattern: /^Lista de Exercícios_\s*Módulo\s*1\s*\(Estrutura Sequencial\)$/i,
+    label: 'Introdução e Fluxogramas',
+    order: 1,
+  },
+  {
+    pattern: /^Lista de Exercícios_\s*Módulo\s*2\s*\(Variáveis, Atribuição e Operações Aritméticas\)$/i,
+    label: 'Dados e Operadores',
+    order: 2,
+  },
+  {
+    pattern: /^Lista de Exercícios_\s*Módulo\s*3\s*\(Estrutura Sequencial e Organização de Algoritmos\)$/i,
+    label: 'Estruturas Condicionais',
+    order: 3,
+  },
+  {
+    pattern: /^Lista de Exercícios_\s*Módulo\s*4\s*\(Estruturas Condicionais\)$/i,
+    label: 'Laços de Repetição',
+    order: 4,
+  },
+  {
+    pattern: /^Lista de Exercícios_\s*Módulo\s*5\s*\(Estruturas de Repetição\)$/i,
+    label: 'Vetores (Arrays)',
+    order: 5,
+  },
+  {
+    pattern: /^Lista de Exercícios_\s*Módulo\s*6\s*\(Vetores, Modularização e Integração\)$/i,
+    label: 'Funções e Modularização',
+    order: 6,
+  },
+]
+
+function normalizeFileStem(fileName: string): string {
+  return fileName.replace(/\.md$/i, '')
+}
+
+function getDocLabelConfig(fileName: string): DocLabelConfig | undefined {
+  const fileStem = normalizeFileStem(fileName)
+  return DOC_LABEL_CONFIGS.find((config) => config.pattern.test(fileStem))
+}
 
 function slugify(value: string): string {
   return value
@@ -23,7 +73,12 @@ function normalizeSpaces(value: string): string {
 }
 
 export function toShortDocLabel(fileName: string): string {
-  const baseName = fileName.replace(/\.md$/i, '')
+  const baseName = normalizeFileStem(fileName)
+  const configuredLabel = getDocLabelConfig(fileName)
+  if (configuredLabel) {
+    return configuredLabel.label
+  }
+
   const moduleMatch = baseName.match(/^Lista de Exerc[ií]cios_\s*(M[oó]dulo\s*\d+)\s*\((.+)\)$/i)
   if (moduleMatch) {
     const moduleName = normalizeSpaces(moduleMatch[1])
@@ -41,15 +96,17 @@ export function buildDocMenuItemsFromModules(modules: DocModuleMap): DocMenuItem
       const fileName = path.split('/').pop() ?? path
       const id = slugify(fileName)
       const label = toShortDocLabel(fileName)
+      const order = getDocLabelConfig(fileName)?.order ?? Number.MAX_SAFE_INTEGER
 
       return {
         id,
         label,
         sourcePath: `/src/docs/${fileName}`,
+        order,
         loadContent,
       }
     })
-    .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'))
+    .sort((a, b) => a.order - b.order || a.label.localeCompare(b.label, 'pt-BR'))
 }
 
 const markdownModules = import.meta.glob('../docs/*.md', {

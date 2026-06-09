@@ -7,13 +7,13 @@ const { docsMenuItemsMock, openDocInNewTabMock } = vi.hoisted(() => ({
   docsMenuItemsMock: [
     {
       id: 'conteudo-md',
-      label: 'Conteudo',
+      label: 'Conteúdo',
       sourcePath: '/src/docs/Conteúdo.md',
-      loadContent: vi.fn(async () => '# Conteudo'),
+      loadContent: vi.fn(async () => '# Conteúdo'),
     },
     {
       id: 'modulo-1',
-      label: 'Módulo 1: Estrutura Sequencial',
+      label: 'Introdução e Fluxogramas',
       sourcePath: '/src/docs/Lista de Exercícios_ Módulo 1 (Estrutura Sequencial).md',
       loadContent: vi.fn(async () => '# Modulo 1'),
     },
@@ -100,16 +100,14 @@ describe('AlgorithmEditor docs sidebar', () => {
   it('renders menu items for markdown documents', () => {
     render(<AlgorithmEditor />)
 
-    expect(screen.getByRole('button', { name: 'Abrir documento Conteudo' })).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Abrir documento Módulo 1: Estrutura Sequencial' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Abrir documento Conteúdo' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Abrir documento Introdução e Fluxogramas' })).toBeInTheDocument()
   })
 
   it('opens markdown in a new tab when clicking a docs item', async () => {
     render(<AlgorithmEditor />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Abrir documento Conteudo' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir documento Conteúdo' }))
 
     await waitFor(() => {
       expect(openDocInNewTabMock).toHaveBeenCalledWith(docsMenuItemsMock[0])
@@ -119,7 +117,7 @@ describe('AlgorithmEditor docs sidebar', () => {
   it('selects a markdown file sourced from /src/docs', async () => {
     render(<AlgorithmEditor />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Abrir documento Módulo 1: Estrutura Sequencial' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir documento Introdução e Fluxogramas' }))
 
     await waitFor(() => {
       const selected = openDocInNewTabMock.mock.calls.at(-1)?.[0]
