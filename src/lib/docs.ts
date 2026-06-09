@@ -140,6 +140,8 @@ export async function openDocInNewTab(item: DocMenuItem, openFn: typeof window.o
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${safeTitle}</title>
     <style>
+      @import url("https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@8..144,400..700&display=swap");
+
       :root {
         color-scheme: light;
       }
@@ -153,7 +155,7 @@ export async function openDocInNewTab(item: DocMenuItem, openFn: typeof window.o
         min-height: 100vh;
         background: linear-gradient(180deg, #ece3cf 0%, #e5dcc8 100%);
         color: #2a2a2a;
-        font-family: "Roboto Serif", "Noto Serif", "Georgia", "Times New Roman", serif;
+        font-family: "Google Sans Flex", "Roboto Flex", "Inter", "Segoe UI", Arial, sans-serif;
         line-height: 1.65;
         padding: 2rem 1rem;
       }
