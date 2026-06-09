@@ -140,7 +140,7 @@ export async function openDocInNewTab(item: DocMenuItem, openFn: typeof window.o
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${safeTitle}</title>
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@8..144,400..700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@8..144,400..700&family=Inter:wght@400;500;600;700&display=swap");
 
       :root {
         color-scheme: light;
@@ -155,9 +155,25 @@ export async function openDocInNewTab(item: DocMenuItem, openFn: typeof window.o
         min-height: 100vh;
         background: linear-gradient(180deg, #ece3cf 0%, #e5dcc8 100%);
         color: #2a2a2a;
-        font-family: "Google Sans Flex", "Roboto Flex", "Inter", "Segoe UI", Arial, sans-serif;
+        font-family: "Google Sans Flex", "Inter", "Roboto", "Segoe UI", Arial, Helvetica, sans-serif;
         line-height: 1.65;
         padding: 2rem 1rem;
+      }
+
+      .paper,
+      .paper h1,
+      .paper h2,
+      .paper h3,
+      .paper h4,
+      .paper h5,
+      .paper h6,
+      .paper p,
+      .paper li,
+      .paper blockquote,
+      .paper table,
+      .paper th,
+      .paper td {
+        font-family: "Google Sans Flex", "Inter", "Roboto", "Segoe UI", Arial, Helvetica, sans-serif;
       }
 
       .paper {
