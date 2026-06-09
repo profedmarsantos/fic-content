@@ -326,14 +326,14 @@ export function AlgorithmEditor() {
     'h-10 w-10 border border-[#345ca6] bg-[#3d6abf] p-0 text-white hover:bg-[#345ca6] dark:border-[#4b78cf] dark:bg-[#3d6abf] dark:text-white dark:hover:bg-[#4b78cf]'
   const compactOutlineButtonClass =
     'h-10 w-10 border border-[#d6ccba] bg-[#fff9ef] p-0 text-[#3d6abf] hover:bg-[#f3ead7] dark:border-[#3a3d41] dark:bg-[#2d2d30] dark:text-[#6ea0ff] dark:hover:bg-[#38383d]'
-    const sidebarWidthClass = 'w-64'
-    const collapsedSidebarWidthClass = 'w-16'
+  const sidebarWidthClass = 'w-80'
+  const collapsedSidebarWidthClass = 'w-16'
   const editorWidthClass = 'w-full md:w-[960px] md:min-w-[960px] md:shrink-0'
 
     useLayoutEffect(() => {
       function syncSidebarState() {
         const viewportWidth = window.innerWidth
-      const sidebarExpandedWidth = 256 * 2
+      const sidebarExpandedWidth = 320 * 2
       const sidebarCollapsedWidth = 64 * 2
       const editorWidth = 960
       const horizontalPadding = 32
@@ -647,8 +647,8 @@ export function AlgorithmEditor() {
       <section
         className={cn(
           'mx-auto flex h-full min-h-0 min-w-0 items-center justify-center transition-all duration-300',
-          isSidebarCollapsed ? 'md:pl-24' : 'md:pl-72',
-          isDocsSidebarCollapsed ? 'md:pr-24' : 'md:pr-72',
+          isSidebarCollapsed ? 'md:pl-24' : 'md:pl-80',
+          isDocsSidebarCollapsed ? 'md:pr-24' : 'md:pr-80',
         )}
       >
         <Card className={cn('flex h-full min-h-0 flex-none flex-col overflow-hidden border-[#d9cebc] bg-[#f7ecd2] shadow-2xl dark:border-[#3a3d41] dark:bg-[#1e1e1e]', editorWidthClass)}>

@@ -153,7 +153,7 @@ export async function openDocInNewTab(item: DocMenuItem, openFn: typeof window.o
         min-height: 100vh;
         background: linear-gradient(180deg, #ece3cf 0%, #e5dcc8 100%);
         color: #2a2a2a;
-        font-family: "Georgia", "Times New Roman", serif;
+        font-family: "Roboto Serif", "Noto Serif", "Georgia", "Times New Roman", serif;
         line-height: 1.65;
         padding: 2rem 1rem;
       }
@@ -206,6 +206,24 @@ export async function openDocInNewTab(item: DocMenuItem, openFn: typeof window.o
         background: #f4eee2;
         padding: 0.9rem;
         border-radius: 8px;
+      }
+
+      .paper table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid #b7ab95;
+      }
+
+      .paper th,
+      .paper td {
+        border: 1px solid #b7ab95;
+        padding: 0.5rem 0.65rem;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .paper th {
+        background: #f4eee2;
       }
 
       .paper a {
