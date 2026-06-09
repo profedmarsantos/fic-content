@@ -13,7 +13,7 @@ const { docsMenuItemsMock, openDocInNewTabMock } = vi.hoisted(() => ({
     },
     {
       id: 'modulo-1',
-      label: 'Introdução e Fluxogramas',
+      label: '1. Introdução e Fluxogramas',
       sourcePath: '/src/docs/Lista de Exercícios_ Módulo 1 (Estrutura Sequencial).md',
       loadContent: vi.fn(async () => '# Modulo 1'),
     },
@@ -101,7 +101,7 @@ describe('AlgorithmEditor docs sidebar', () => {
     render(<AlgorithmEditor />)
 
     expect(screen.getByRole('button', { name: 'Abrir documento Conteúdo' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Abrir documento Introdução e Fluxogramas' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Abrir documento 1. Introdução e Fluxogramas' })).toBeInTheDocument()
   })
 
   it('opens markdown in a new tab when clicking a docs item', async () => {
@@ -117,7 +117,7 @@ describe('AlgorithmEditor docs sidebar', () => {
   it('selects a markdown file sourced from /src/docs', async () => {
     render(<AlgorithmEditor />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Abrir documento Introdução e Fluxogramas' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir documento 1. Introdução e Fluxogramas' }))
 
     await waitFor(() => {
       const selected = openDocInNewTabMock.mock.calls.at(-1)?.[0]

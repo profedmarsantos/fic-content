@@ -596,15 +596,6 @@ export function AlgorithmEditor() {
               </div>
             ) : (
               <>
-                <div className="space-y-3">
-                  <h2 className="sidebar-title text-center text-[#3d6abf] dark:text-[#3d6abf]">
-                    Biblioteca
-                  </h2>
-                  <p className="sidebar-helper-text text-center text-slate-600 dark:text-[#d4d4d4]">
-                    Documentos em Markdown para leitura em formato de folha.
-                  </p>
-                </div>
-
                 <div className="mt-4 grid gap-2">
                   {docsMenuItems.map((item) => (
                     <Button
@@ -620,13 +611,6 @@ export function AlgorithmEditor() {
                       {item.label}
                     </Button>
                   ))}
-                </div>
-
-                <div className="mt-6 rounded-md border border-[#d6ccba] bg-[#fffdf8] p-3 text-xs text-slate-600 dark:border-[#3a3d41] dark:bg-[#2d2d30] dark:text-[#c8c8c8]">
-                  <p className="mb-2 font-semibold text-slate-800 dark:text-[#e6e6e6]">Fonte dos itens</p>
-                  <p className="leading-5">
-                    Os arquivos são carregados automaticamente da pasta /src/docs, sem cadastro manual.
-                  </p>
                 </div>
               </>
             )}

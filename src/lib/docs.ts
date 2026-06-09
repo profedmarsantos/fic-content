@@ -20,32 +20,32 @@ const DOC_LABEL_CONFIGS: DocLabelConfig[] = [
   { pattern: /^Conteúdo$/i, label: 'Conteúdo', order: 0 },
   {
     pattern: /^Lista de Exercícios_\s*Módulo\s*1\s*\(Estrutura Sequencial\)$/i,
-    label: 'Introdução e Fluxogramas',
+    label: '1. Introdução e Fluxogramas',
     order: 1,
   },
   {
     pattern: /^Lista de Exercícios_\s*Módulo\s*2\s*\(Variáveis, Atribuição e Operações Aritméticas\)$/i,
-    label: 'Dados e Operadores',
+    label: '2. Dados e Operadores',
     order: 2,
   },
   {
     pattern: /^Lista de Exercícios_\s*Módulo\s*3\s*\(Estrutura Sequencial e Organização de Algoritmos\)$/i,
-    label: 'Estruturas Condicionais',
+    label: '3. Estruturas Condicionais',
     order: 3,
   },
   {
     pattern: /^Lista de Exercícios_\s*Módulo\s*4\s*\(Estruturas Condicionais\)$/i,
-    label: 'Laços de Repetição',
+    label: '4. Laços de Repetição',
     order: 4,
   },
   {
     pattern: /^Lista de Exercícios_\s*Módulo\s*5\s*\(Estruturas de Repetição\)$/i,
-    label: 'Vetores (Arrays)',
+    label: '5. Vetores (Arrays)',
     order: 5,
   },
   {
     pattern: /^Lista de Exercícios_\s*Módulo\s*6\s*\(Vetores, Modularização e Integração\)$/i,
-    label: 'Funções e Modularização',
+    label: '6. Funções e Modularização',
     order: 6,
   },
 ]
@@ -132,15 +132,8 @@ export function getDocMenuItems(): DocMenuItem[] {
 export async function openDocInNewTab(item: DocMenuItem, openFn: typeof window.open = window.open): Promise<boolean> {
   const markdown = await item.loadContent()
   const html = marked.parse(markdown, { async: false }) as string
-  const nextWindow = openFn('', '_blank', 'noopener,noreferrer')
-
-  if (!nextWindow) {
-    return false
-  }
-
   const safeTitle = escapeHtml(item.label)
-
-  nextWindow.document.write(`<!doctype html>
+  const documentHtml = `<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -223,8 +216,15 @@ export async function openDocInNewTab(item: DocMenuItem, openFn: typeof window.o
   <body>
     <article class="paper">${html}</article>
   </body>
-</html>`)
-  nextWindow.document.close()
+</html>`
+  const blob = new Blob([documentHtml], { type: 'text/html;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const nextWindow = openFn(url, '_blank', 'noopener,noreferrer')
+
+  if (!nextWindow) {
+    URL.revokeObjectURL(url)
+    return false
+  }
 
   return true
 }
